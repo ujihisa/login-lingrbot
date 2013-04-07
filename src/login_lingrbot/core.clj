@@ -7,4 +7,6 @@
     room text bot-verifier))
 
 (defn -main []
-  (prn (slurp "src/resources/lingr-post-url")))
+  (if-let [bot-verifier (slurp "src/resources/bot-verifier")]
+    (prn 'bot-verifier bot-verifier)
+    (.out *err* "give me bot-verifier")))
