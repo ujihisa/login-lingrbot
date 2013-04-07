@@ -2,14 +2,34 @@
   (:require [clj-http.client :as client])
   (:import [java.net URLEncoder]))
 
+(defn read-command* [cmd f]
+  (let [proc (.exec (Runtime/getRuntime) (into-array cmd))]
+    (with-open [stdout (.getInputStream proc)]
+      (loop [acc []]
+        (let [c (.read stdout)
+              acc2 (conj acc c)]
+          (condp = c
+            10 (do
+                 (f (apply str (map char acc2)))
+                 (recur []))
+            -1 (when-not (empty? acc)
+                 (f (apply str (map char acc))))
+            (recur acc2)))))))
+
+(defmacro read-command [cmd args & body]
+  `(read-command* ~cmd (fn ~args ~@body)))
+
 (defn make-lingr-url [room text bot-verifier]
   (format
     "http://lingr.com/api/room/say?room=%s&bot=login&text=%s&bot_verifier=%s"
-    room text bot-verifier))
+    room (URLEncoder/encode text) bot-verifier))
 
 (defn -main []
   (if-let [bot-verifier (clojure.string/trim-newline (slurp "src/resources/bot-verifier"))]
-    (let [msg (URLEncoder/encode "てすと from clojure")
-          lingr-url (make-lingr-url "computer_science" msg bot-verifier)]
-      (client/get lingr-url))
+    (read-command (clojure.string/split "sudo journalctl -u systemd-logind -f" #" ") [line]
+      (when (re-find #"New session" line)
+        (let [msg (clojure.string/trim-newline line)]
+          (client/get (make-lingr-url "computer_science" msg bot-verifier)))))
     (.out *err* "give me bot-verifier")))
+
+; vim: set lispwords+=read-command :
