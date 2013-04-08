@@ -30,10 +30,12 @@
   (if-let [bot-verifier (clojure.string/trim-newline
                           (slurp (clojure.java.io/resource "bot-verifier")))]
     (read-command (clojure.string/split "sudo journalctl -u systemd-logind -o json -f" #" ") [line]
-      (prn 'json (json/read-str line))
-      #_(when (re-find #"New session" line)
-        (let [msg (clojure.string/trim-newline line)]
-          (client/get (make-lingr-url "computer_science" msg bot-verifier)))))
+      (when-let [json (json/read-str line)]
+        (when-let [user (json "USER_ID")]
+          (let [host (json "_HOSTNAME")
+                session-id (json "SESSION_ID")
+                msg (format "%s logged in to %s (%d)" user host session-id)]
+            (client/get (make-lingr-url "computer_science" msg bot-verifier))))))
     (.out *err* "give me bot-verifier")))
 
 ; vim: set lispwords+=read-command :
