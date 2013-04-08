@@ -1,5 +1,6 @@
 (ns login-lingrbot.core
-  (:require [clj-http.client :as client])
+  (:require [clj-http.client :as client]
+            [clojure.data.json :as json])
   (:import [java.net URLEncoder])
   (:gen-class))
 
@@ -28,8 +29,9 @@
 (defn -main []
   (if-let [bot-verifier (clojure.string/trim-newline
                           (slurp (clojure.java.io/resource "bot-verifier")))]
-    (read-command (clojure.string/split "sudo journalctl -u systemd-logind -f" #" ") [line]
-      (when (re-find #"New session" line)
+    (read-command (clojure.string/split "sudo journalctl -u systemd-logind -o json -f" #" ") [line]
+      (prn 'json (json/read-str line))
+      #_(when (re-find #"New session" line)
         (let [msg (clojure.string/trim-newline line)]
           (client/get (make-lingr-url "computer_science" msg bot-verifier)))))
     (.out *err* "give me bot-verifier")))
