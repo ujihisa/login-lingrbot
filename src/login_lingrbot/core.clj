@@ -37,7 +37,7 @@
                 session-id (json "SESSION_ID")
                 code-function (json "CODE_FUNCTION")
                 login-template (or (when-let [rc (slurp (format "/home/%s/.login-lingrbotrc" user))]
-                                     (:login (read-str rc)))
+                                     (:login (read-string rc)))
                                    "$USER_ID, welcome to $_HOSTNAME! ($SESSION_ID)")
                 msg (case code-function
                       "session_start"
