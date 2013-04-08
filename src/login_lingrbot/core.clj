@@ -26,7 +26,7 @@
     room (URLEncoder/encode text) bot-verifier))
 
 (defn -main []
-  (prn 'hmm (.getFile (clojure.java.io/resource "bot-verifier")))
+  (prn 'hmm (clojure.java.io/resource "bot-verifier"))
   (if-let [bot-verifier (clojure.string/trim-newline
                           (.getFile (clojure.java.io/resource "bot-verifier")))]
     (read-command (clojure.string/split "sudo journalctl -u systemd-logind -f" #" ") [line]
