@@ -34,8 +34,15 @@
         (when-let [user (json "USER_ID")]
           (let [host (json "_HOSTNAME")
                 session-id (json "SESSION_ID")
-                msg (format "%s logged in to %s (%s)" user host session-id)]
-            (client/get (make-lingr-url "computer_science" msg bot-verifier))))))
+                code-function (json "CODE_FUNCTION")
+                msg (case code-function
+                      "session_start"
+                      (format "%s, welcome to %s! (%s)" user host session-id)
+                      "session_stop"
+                      (format "goodbye, %s from %s.. (%s)" user host session-id)
+                      nil)]
+            (when msg
+              (client/get (make-lingr-url "computer_science" msg bot-verifier)))))))
     (.out *err* "give me bot-verifier")))
 
 ; vim: set lispwords+=read-command :
