@@ -1,6 +1,7 @@
 (ns login-lingrbot.core
   (:require [clj-http.client :as client])
-  (:import [java.net URLEncoder]))
+  (:import [java.net URLEncoder])
+  (:gen-class))
 
 (defn read-command* [cmd f]
   (let [proc (.exec (Runtime/getRuntime) (into-array cmd))]
