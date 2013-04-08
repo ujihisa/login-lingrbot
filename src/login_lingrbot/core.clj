@@ -39,11 +39,16 @@
                                                      (catch Exception e nil))]
                                        (rand-nth (:login (read-string rc)))))
                                    "$USER_ID, welcome to $_HOSTNAME! ($SESSION_ID)")
+                logout-template (or (let [fname (format "/home/%s/.login-lingrbotrc" user)]
+                                     (when-let [rc (try (slurp fname)
+                                                     (catch Exception e nil))]
+                                       (rand-nth (:logout (read-string rc)))))
+                                   "goodbye, $USER_ID from $_HOSTNAME!.. ($SESSION_ID)")
                 msg (case code-function
                       "session_start"
                       (reduce (fn [memo [k v]] (.replace memo (str "$" k) v)) login-template json)
                       "session_stop"
-                      (format "goodbye, %s from %s.. (%s)" user host session-id)
+                      (reduce (fn [memo [k v]] (.replace memo (str "$" k) v)) logout-template json)
                       nil)]
             (when msg
               (client/get (make-lingr-url "computer_science" msg bot-verifier)))))))
