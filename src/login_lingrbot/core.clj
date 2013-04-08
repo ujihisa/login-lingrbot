@@ -36,9 +36,15 @@
           (let [host (json "_HOSTNAME")
                 session-id (json "SESSION_ID")
                 code-function (json "CODE_FUNCTION")
+                login-template (or (when-let [rc (slurp (format "/home/%s/.login-lingrbotrc" user))]
+                                     (:login (read-str rc)))
+                                   "$USER_ID, welcome to $_HOSTNAME! ($SESSION_ID)")
                 msg (case code-function
                       "session_start"
-                      (format "%s, welcome to %s! (%s)" user host session-id)
+                      (let [x1 (clojure.string/replace login-template #"\$USER_ID" user)
+                            x2 (clojure.string/replace x1 #"\$_HOSTNAME!" host)
+                            x3 (clojure.string/replace x2 #"\$SESSION_ID" session-id)]
+                        x3)
                       "session_stop"
                       (format "goodbye, %s from %s.. (%s)" user host session-id)
                       nil)]
