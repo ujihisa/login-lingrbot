@@ -26,7 +26,8 @@
     room (URLEncoder/encode text) bot-verifier))
 
 (defn -main []
-  (if-let [bot-verifier (clojure.string/trim-newline (slurp "src/resources/bot-verifier"))]
+  (if-let [bot-verifier (clojure.string/trim-newline
+                          (slurp (.getFile (clojure.java.io/resource "bot-verifier"))))]
     (read-command (clojure.string/split "sudo journalctl -u systemd-logind -f" #" ") [line]
       (when (re-find #"New session" line)
         (let [msg (clojure.string/trim-newline line)]
