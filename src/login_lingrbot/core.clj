@@ -39,7 +39,7 @@
                 login-template (or (let [fname (format "/home/%s/.login-lingrbotrc" user)]
                                      (when-let [rc (try (slurp fname)
                                                      (catch Exception e nil))]
-                                       (:login (read-string rc))))
+                                       (rand-nth (:login (read-string rc)))))
                                    "$USER_ID, welcome to $_HOSTNAME! ($SESSION_ID)")
                 msg (case code-function
                       "session_start"
