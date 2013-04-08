@@ -33,9 +33,7 @@
       (when-let [json (try (json/read-str line)
                         (catch Exception e nil))]
         (when-let [user (json "USER_ID")]
-          (let [host (json "_HOSTNAME")
-                session-id (json "SESSION_ID")
-                code-function (json "CODE_FUNCTION")
+          (let [code-function (json "CODE_FUNCTION")
                 login-template (or (let [fname (format "/home/%s/.login-lingrbotrc" user)]
                                      (when-let [rc (try (slurp fname)
                                                      (catch Exception e nil))]
@@ -43,10 +41,7 @@
                                    "$USER_ID, welcome to $_HOSTNAME! ($SESSION_ID)")
                 msg (case code-function
                       "session_start"
-                      (let [x1 (.replace login-template "$USER_ID" user)
-                            x2 (.replace x1 "$_HOSTNAME!" host)
-                            x3 (.replace x2 "$SESSION_ID" session-id)]
-                        x3)
+                      (reduce (fn [memo [k v]] (.replace memo (str "$" k) v)) login-template json)
                       "session_stop"
                       (format "goodbye, %s from %s.. (%s)" user host session-id)
                       nil)]
