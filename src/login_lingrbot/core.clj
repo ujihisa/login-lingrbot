@@ -30,7 +30,8 @@
   (if-let [bot-verifier (clojure.string/trim-newline
                           (slurp (clojure.java.io/resource "bot-verifier")))]
     (read-command (clojure.string/split "sudo journalctl -u systemd-logind -o json -f" #" ") [line]
-      (when-let [json (json/read-str line)]
+      (when-let [json (try (json/read-str line)
+                        (catch Exception e nil))]
         (when-let [user (json "USER_ID")]
           (let [host (json "_HOSTNAME")
                 session-id (json "SESSION_ID")
