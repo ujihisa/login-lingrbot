@@ -33,8 +33,8 @@
       (when-let [json (json/read-str line)]
         (when-let [user (json "USER_ID")]
           (let [host (json "_HOSTNAME")
-                session-id (long (json "SESSION_ID"))
-                msg (format "%s logged in to %s (%d)" user host session-id)]
+                session-id (json "SESSION_ID")
+                msg (format "%s logged in to %s (%s)" user host session-id)]
             (client/get (make-lingr-url "computer_science" msg bot-verifier))))))
     (.out *err* "give me bot-verifier")))
 
