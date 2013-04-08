@@ -36,8 +36,10 @@
           (let [host (json "_HOSTNAME")
                 session-id (json "SESSION_ID")
                 code-function (json "CODE_FUNCTION")
-                login-template (or (when-let [rc (slurp (format "/home/%s/.login-lingrbotrc" user))]
-                                     (:login (read-string rc)))
+                login-template (or (let [fname (format "/home/%s/.login-lingrbotrc" user)]
+                                     (when-let [rc (try (slurp fname)
+                                                     (catch Exception e nil))]
+                                       (:login (read-string rc))))
                                    "$USER_ID, welcome to $_HOSTNAME! ($SESSION_ID)")
                 msg (case code-function
                       "session_start"
