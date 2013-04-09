@@ -26,24 +26,28 @@
     "http://lingr.com/api/room/say?room=%s&bot=login&text=%s&bot_verifier=%s"
     room (URLEncoder/encode text) bot-verifier))
 
+(defn or-nil* [f]
+  (try (f)
+    (catch Exception e nil)))
+
+(defmacro or-nil [body]
+  `(or-nil* (fn [] ~@body)))
+
 (defn -main [& args]
   (if-let [path-bot-verifier (first args)]
     (if-let [bot-verifier (clojure.string/trim-newline
                             (slurp #_(clojure.java.io/resource "bot-verifier")
                                    path-bot-verifier))]
       (read-command (clojure.string/split "sudo journalctl -n 0 -u systemd-logind -o json -f" #" ") [line]
-        (when-let [json (try (json/read-str line)
-                          (catch Exception e nil))]
+        (when-let [json (or-nil (json/read-str line))]
           (when-let [user (json "USER_ID")]
             (let [code-function (json "CODE_FUNCTION")
                   login-template (or (let [fname (format "/home/%s/.login-lingrbotrc" user)]
-                                       (when-let [rc (try (slurp fname)
-                                                       (catch Exception e nil))]
+                                       (when-let [rc (or-nil (slurp fname))]
                                          (rand-nth (:login (read-string rc)))))
                                      "$USER_ID, welcome to $_HOSTNAME! ($SESSION_ID)")
                   logout-template (or (let [fname (format "/home/%s/.login-lingrbotrc" user)]
-                                        (when-let [rc (try (slurp fname)
-                                                        (catch Exception e nil))]
+                                        (when-let [rc (or-nil (slurp fname))]
                                           (rand-nth (:logout (read-string rc)))))
                                       "goodbye, $USER_ID from $_HOSTNAME!.. ($SESSION_ID)")
                   msg (case code-function
