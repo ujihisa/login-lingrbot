@@ -29,7 +29,8 @@
 (defn -main [& args]
   (if-let [path-bot-verifier (first args)]
     (if-let [bot-verifier (clojure.string/trim-newline
-                            (slurp (clojure.java.io/resource "bot-verifier")))]
+                            (slurp #_(clojure.java.io/resource "bot-verifier")
+                                   path-bot-verifier))]
       (read-command (clojure.string/split "sudo journalctl -n 0 -u systemd-logind -o json -f" #" ") [line]
         (when-let [json (try (json/read-str line)
                           (catch Exception e nil))]
