@@ -26,32 +26,34 @@
     "http://lingr.com/api/room/say?room=%s&bot=login&text=%s&bot_verifier=%s"
     room (URLEncoder/encode text) bot-verifier))
 
-(defn -main []
-  (if-let [bot-verifier (clojure.string/trim-newline
-                          (slurp (clojure.java.io/resource "bot-verifier")))]
-    (read-command (clojure.string/split "sudo journalctl -n 0 -u systemd-logind -o json -f" #" ") [line]
-      (when-let [json (try (json/read-str line)
-                        (catch Exception e nil))]
-        (when-let [user (json "USER_ID")]
-          (let [code-function (json "CODE_FUNCTION")
-                login-template (or (let [fname (format "/home/%s/.login-lingrbotrc" user)]
-                                     (when-let [rc (try (slurp fname)
-                                                     (catch Exception e nil))]
-                                       (rand-nth (:login (read-string rc)))))
-                                   "$USER_ID, welcome to $_HOSTNAME! ($SESSION_ID)")
-                logout-template (or (let [fname (format "/home/%s/.login-lingrbotrc" user)]
-                                      (when-let [rc (try (slurp fname)
-                                                      (catch Exception e nil))]
-                                        (rand-nth (:logout (read-string rc)))))
-                                    "goodbye, $USER_ID from $_HOSTNAME!.. ($SESSION_ID)")
-                msg (case code-function
-                      "session_start"
-                      (reduce (fn [memo [k v]] (.replace memo (str "$" k) v)) login-template json)
-                      "session_stop"
-                      (reduce (fn [memo [k v]] (.replace memo (str "$" k) v)) logout-template json)
-                      nil)]
-            (when msg
-              (client/get (make-lingr-url "computer_science" msg bot-verifier)))))))
-    (.out *err* "give me bot-verifier")))
+(defn -main [& args]
+  (if-let [path-bot-verifier (first args)]
+    (if-let [bot-verifier (clojure.string/trim-newline
+                            (slurp (clojure.java.io/resource "bot-verifier")))]
+      (read-command (clojure.string/split "sudo journalctl -n 0 -u systemd-logind -o json -f" #" ") [line]
+        (when-let [json (try (json/read-str line)
+                          (catch Exception e nil))]
+          (when-let [user (json "USER_ID")]
+            (let [code-function (json "CODE_FUNCTION")
+                  login-template (or (let [fname (format "/home/%s/.login-lingrbotrc" user)]
+                                       (when-let [rc (try (slurp fname)
+                                                       (catch Exception e nil))]
+                                         (rand-nth (:login (read-string rc)))))
+                                     "$USER_ID, welcome to $_HOSTNAME! ($SESSION_ID)")
+                  logout-template (or (let [fname (format "/home/%s/.login-lingrbotrc" user)]
+                                        (when-let [rc (try (slurp fname)
+                                                        (catch Exception e nil))]
+                                          (rand-nth (:logout (read-string rc)))))
+                                      "goodbye, $USER_ID from $_HOSTNAME!.. ($SESSION_ID)")
+                  msg (case code-function
+                        "session_start"
+                        (reduce (fn [memo [k v]] (.replace memo (str "$" k) v)) login-template json)
+                        "session_stop"
+                        (reduce (fn [memo [k v]] (.replace memo (str "$" k) v)) logout-template json)
+                        nil)]
+              (when msg
+                (client/get (make-lingr-url "computer_science" msg bot-verifier)))))))
+      (.out *err* "give me bot-verifier"))
+    (.out *err* "give me path of bot-verifier in command line argument.")))
 
 ; vim: set lispwords+=read-command :
